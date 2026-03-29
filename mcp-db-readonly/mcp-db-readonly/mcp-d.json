@@ -1,0 +1,13 @@
+{
+  "DB_ReadOnly_1_0_0": {
+    "command": "python3",
+    "args": ["./fastmcp_db_readonly_server_1_0_0.py"],
+    "env": {
+      "DB_HOST": "host",
+      "DB_PORT": "3306",
+      "DB_USER": "username",
+      "DB_PASSWORD": "password",
+      "DB_NAME": "database"
+    }
+  }
+}

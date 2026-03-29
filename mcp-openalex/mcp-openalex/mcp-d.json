@@ -1,0 +1,10 @@
+{
+  "OpenAlex_Research_1_0_0": {
+    "command": "node",
+    "args": ["./dist/src/index.js"],
+    "env": {
+      "OPENALEX_API_KEY": "API-KEY",
+      "OPENALEX_MAILTO": "EMAIL"
+    }
+  }
+}
