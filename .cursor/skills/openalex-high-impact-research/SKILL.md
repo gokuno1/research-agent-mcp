@@ -221,6 +221,26 @@ Emit `structuralInterventions[]` with `failureMode` + `structuralChange`.
 ## Refinement notes
 - Pass 1: …
 - Pass 2: …
+
+## Decision record (proposed solution)
+- **Problem context:** [10-20 lines on what must be solved]
+- **Options considered:**
+  - **Option A:** [short label] — [one-paragraph description]
+  - **Option B:** [short label] — [one-paragraph description]
+  - **Option C (optional):** [short label] — [one-paragraph description]
+- **Pros and cons:**
+  - **Option A**
+    - Pros: [bullets]
+    - Cons: [bullets]
+  - **Option B**
+    - Pros: [bullets]
+    - Cons: [bullets]
+  - **Option C (optional)**
+    - Pros: [bullets]
+    - Cons: [bullets]
+- **Final proposed solution:** [single clear choice + why]
+- **Confidence:** [low|medium|high]
+- **Follow-up tasks:** [next validation or implementation steps]
 ```
 
 **MongoDB insert (mandatory end step)**
