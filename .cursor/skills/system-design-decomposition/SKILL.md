@@ -125,12 +125,100 @@ Mark at each boundary:
 | **Warm path** | Periodic operations (batching, flushing) | Millisecond-optimized |
 | **Cold path** | Setup, configuration, recovery | Can be slower, correctness > speed |
 
+### Step 2.4 — System Dimensions Analysis
+
+Every system makes architectural choices across ten fundamental dimensions. For each, the goal is **not** to catalog features — it's to understand *why the system handles this dimension the way it does*, what was rejected, and what breaks if assumptions change.
+
+#### Data Model
+
+- What is the fundamental data abstraction? (log, table, document, key-value, graph, stream, fixed-schema record)
+- Why was *this* data model chosen over alternatives for this problem domain?
+- How does the data model constrain or enable the system's performance characteristics?
+- What access patterns does this data model optimize for? What does it make expensive?
+- If you changed the data model (e.g., from append-only log to B+ tree), what architectural components would need to be redesigned?
+
+#### Authentication & Security
+
+- How does the system establish identity and authorize access?
+- Where in the architecture is the security boundary? (network edge, per-request, per-component, at the storage layer)
+- What is the security model's cost on the hot path? (zero-cost? TLS overhead? token validation per request? crypto on every write?)
+- What did they choose to *trust* vs *verify*, and why? (e.g., Aeron trusts the local process via shared memory — no auth on IPC hot path)
+- How would adding authentication to the hot path change the system's latency profile?
+
+#### Memory
+
+- How does the system use memory? (heap, off-heap, memory-mapped, shared memory, direct buffers)
+- What is the allocation strategy on the hot path? (pre-allocated, pooled, arena, zero-allocation)
+- How is memory lifecycle managed? (GC, reference counting, arena allocation, manual free, RAII)
+- What happens when memory is exhausted? (back-pressure, spill to disk, OOM crash, degraded mode, eviction)
+- What is the implicit bet about memory availability? (e.g., "we assume enough RAM to hold the working set" — what breaks if that's wrong?)
+
+#### CPU
+
+- What is the threading model? (single-threaded event loop, thread-per-core, thread pool, dedicated threads for hot/cold paths)
+- How is work scheduled across cores? (pinning, affinity, work-stealing, OS scheduling)
+- What CPU-level optimizations matter? (cache-line awareness, false sharing prevention, branch prediction, SIMD, prefetching)
+- Where are the contention points? (locks, CAS loops, shared mutable state, memory barriers)
+- What is the NUMA story? (NUMA-aware allocation, or NUMA-oblivious — and what's the cost of that choice?)
+
+#### Network
+
+- What protocol sits on the wire? (TCP, UDP, QUIC, custom) *Why this one over alternatives?*
+- How many network round-trips for the critical operation? What determines the minimum?
+- How is serialization handled? (binary, text, zero-copy, schema-driven, self-describing)
+- What network failure modes are explicitly designed for? (partition, latency spike, asymmetric failure, packet reordering)
+- Where does the network interact with the kernel? Is there any kernel bypass? (sendfile, DPDK, io_uring, mmap)
+
+#### Multitenancy
+
+- Is the system designed for shared or dedicated resources per tenant/client?
+- How is isolation achieved? (process-level, container, namespace, logical partition, shared-nothing, resource pools)
+- What is the "noisy neighbor" mitigation? (rate limiting, resource quotas, fair scheduling, priority queues)
+- What breaks first under multi-tenant pressure? (memory, CPU, I/O bandwidth, network, connection limits)
+- If this system wasn't designed for multitenancy, what architectural changes would be needed to add it?
+
+#### Fault Tolerance
+
+- What failure modes does the system explicitly handle? (node crash, disk failure, network partition, Byzantine fault, split-brain)
+- What is the replication strategy? (synchronous, asynchronous, quorum-based) *Why that choice?*
+- What consistency guarantees are provided? (strong, eventual, causal, linearizable) At what performance cost?
+- What is the blast radius of a single component failure? (one request, one partition, one tenant, the whole cluster)
+- What is *not* tolerated — what failure brings the system down by design?
+
+#### Deployment
+
+- What is the deployment topology? (single-node, client-server, peer-to-peer, leader-follower, sharded cluster)
+- What are the hard dependencies? (JVM version, kernel version, specific hardware, co-located services, shared storage)
+- How does the system handle rolling upgrades and version skew between components?
+- What deployment constraint most influenced the architecture? (e.g., "must run on commodity hardware" shaped Kafka's design; "must run in a single process" shaped SQLite)
+- What is the minimum viable deployment vs production-grade deployment?
+
+#### Monitoring & Observability
+
+- What are the critical metrics that indicate system health vs degradation vs failure?
+- How is the system instrumented? (built-in metrics endpoint, log-based, distributed tracing, eBPF probes)
+- What does the system make easy to observe vs hard to observe? (e.g., throughput is easy; tail latency causes are hard)
+- How do you distinguish "slow" from "broken" from "overloaded"?
+- What would you monitor to predict a failure *before* it happens?
+
+#### Recovery
+
+- What is the recovery mechanism after crash? (WAL replay, snapshot + log, rebuild from replica, re-fetch from source)
+- What is the recovery time objective (RTO)? What determines it? (log size, snapshot frequency, data volume)
+- What data can be lost during recovery? (RPO — recovery point objective) Is this tunable?
+- Is recovery deterministic or best-effort? (Can you *prove* recovery produces the same state?)
+- What is the cold-start story? (How long from zero to serving traffic, and what's the bottleneck?)
+
+**Design thinking anchor for all dimensions:** For each dimension, always ask — *"What would a naive/default approach look like, why is it insufficient for this system's requirements, and what specific problem forced them to do something different?"*
+
 ### Where to Find Phase 2 Information
 
 1. **Architecture docs** (GitHub wiki, `/doc` folder, design docs)
 2. **Conference talks with architecture slides** — pause on diagrams, screenshot them
 3. **"How X works internally" blog posts** by the team or community
 4. **README diagrams**
+5. **Operational guides and runbooks** — often reveal monitoring, recovery, and deployment realities
+6. **Post-mortems and incident reports** — reveal actual fault tolerance boundaries and recovery behavior
 
 ---
 
@@ -140,17 +228,26 @@ The core of system design understanding. Every high-performance system makes 3-7
 
 ### Step 3.1 — List Each Decision
 
-Format as "They chose X over Y":
+Format as "They chose X over Y". Cover decisions across all system dimensions:
 
 ```
-| Decision Area      | They Chose...          | Over...                  | Why                                    |
-|--------------------|------------------------|--------------------------|----------------------------------------|
-| [Transport]        | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
-| [Threading model]  | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
-| [Memory model]     | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
-| [Persistence]      | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
-| [Flow control]     | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
+| Decision Area         | They Chose...          | Over...                  | Why                                    |
+|-----------------------|------------------------|--------------------------|----------------------------------------|
+| Data model            | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
+| Transport / Network   | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
+| Threading / CPU model | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
+| Memory model          | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
+| Persistence           | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
+| Flow control          | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
+| Auth / Security       | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
+| Multitenancy          | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
+| Fault tolerance       | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
+| Deployment model      | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
+| Recovery strategy     | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
+| Observability         | [chosen approach]      | [rejected alternative]   | [reasoning]                            |
 ```
+
+Not every system will have bold decisions in all 12 areas. Focus on the areas where the system made **non-obvious choices**. But scan all dimensions — sometimes the most interesting design insight hides in an area you wouldn't expect (e.g., TigerBeetle's recovery strategy is inseparable from its core innovation).
 
 ### Step 3.2 — Analyze Each Tradeoff
 
