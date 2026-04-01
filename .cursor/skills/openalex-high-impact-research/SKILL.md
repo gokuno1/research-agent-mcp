@@ -9,7 +9,7 @@ description: Runs a structured literature workflow using OpenAlex MCP (high-cita
 
 - The user wants **high-impact** papers and synthesis, not an unfiltered dump.
 - They mention **OpenAlex**, **hypotheses**, **contradictions**, **scoring**, or **MongoDB** persistence.
-- The task is **research reasoning on retrieved works**, with explicit provenance.
+- The task is **research reasoning on retrieved works** that promotes innovation and design thinking, with explicit provenance.
 
 ## How to invoke (no special slash command)
 
