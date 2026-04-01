@@ -88,19 +88,107 @@ Copy this template when studying a new system. Fill in each section following th
 | Warm | [periodic operations] | [millisecond] |
 | Cold | [setup/recovery operations] | [correctness > speed] |
 
+### System Dimensions
+
+For each dimension, capture: what approach was taken, why (not the naive/default approach), and what breaks if the underlying assumption changes.
+
+#### Data Model
+
+- **Fundamental abstraction:** [log / table / document / key-value / graph / stream / fixed-schema record]
+- **Why this model:** [what it optimizes for, what access patterns it enables]
+- **What it makes expensive:** [queries/patterns that fight the data model]
+- **Redesign trigger:** [if you changed the data model, what else breaks?]
+
+#### Authentication & Security
+
+- **Identity model:** [how identity is established — certs, tokens, shared secret, none]
+- **Security boundary location:** [network edge / per-request / per-component / storage layer]
+- **Hot path cost:** [zero / TLS handshake / per-request token validation / crypto per write]
+- **Trust vs verify tradeoff:** [what is trusted without verification, and why]
+
+#### Memory
+
+- **Memory usage pattern:** [heap / off-heap / mmap / shared memory / direct buffers]
+- **Hot path allocation strategy:** [pre-allocated / pooled / arena / zero-allocation]
+- **Lifecycle management:** [GC / refcount / arena / manual / RAII]
+- **Exhaustion behavior:** [back-pressure / spill to disk / OOM / eviction / degraded mode]
+- **Implicit bet:** [what assumption about memory availability must hold]
+
+#### CPU
+
+- **Threading model:** [single-threaded / thread-per-core / thread pool / event loop / dedicated threads]
+- **Core scheduling:** [pinning / affinity / work-stealing / OS-managed]
+- **CPU-level optimizations:** [cache-line awareness / false sharing prevention / SIMD / prefetch / NUMA]
+- **Contention points:** [locks / CAS / shared mutable state / memory barriers]
+
+#### Network
+
+- **Wire protocol:** [TCP / UDP / QUIC / custom] — *why this one?*
+- **Critical path round-trips:** [number and what determines the minimum]
+- **Serialization approach:** [binary / text / zero-copy / schema-driven / self-describing]
+- **Failure modes designed for:** [partition / latency spike / asymmetric failure / reordering]
+- **Kernel interaction:** [standard sockets / sendfile / io_uring / DPDK / mmap]
+
+#### Multitenancy
+
+- **Isolation model:** [shared / dedicated / hybrid] — at what granularity?
+- **Isolation mechanism:** [process / container / namespace / logical partition / resource pools]
+- **Noisy neighbor mitigation:** [rate limits / quotas / fair scheduling / priority queues]
+- **First bottleneck under multi-tenant load:** [memory / CPU / I/O / network / connections]
+
+#### Fault Tolerance
+
+- **Handled failure modes:** [node crash / disk failure / network partition / Byzantine / split-brain]
+- **Replication strategy:** [sync / async / quorum] — *why?*
+- **Consistency guarantee:** [strong / eventual / causal / linearizable] — at what cost?
+- **Blast radius:** [one request / one partition / one tenant / whole cluster]
+- **What is NOT tolerated:** [failure that brings the system down by design]
+
+#### Deployment
+
+- **Topology:** [single-node / client-server / leader-follower / peer-to-peer / sharded cluster]
+- **Hard dependencies:** [JVM / kernel version / hardware / co-located services]
+- **Rolling upgrade story:** [supported / version skew tolerance / blue-green / canary]
+- **Architecture-shaping constraint:** [what deployment reality most influenced design]
+
+#### Monitoring & Observability
+
+- **Critical health metrics:** [what tells you healthy vs degraded vs broken]
+- **Instrumentation approach:** [built-in metrics / logs / traces / eBPF]
+- **Easy to observe:** [what the system surfaces well]
+- **Hard to observe:** [what requires deep investigation]
+- **Predictive signals:** [what to monitor to predict failure before it happens]
+
+#### Recovery
+
+- **Recovery mechanism:** [WAL replay / snapshot + log / rebuild from replica / re-fetch]
+- **RTO (recovery time):** [target and what determines it]
+- **RPO (data loss window):** [how much can be lost, is it tunable]
+- **Determinism:** [deterministic replay or best-effort — can you prove correctness?]
+- **Cold start:** [time from zero to serving, and what's the bottleneck]
+
 ---
 
 ## Phase 3: Design Decisions
 
 ### Decision Table
 
+Scan all system dimensions for decisions. Focus on the 3-7 where the system made **non-obvious choices**.
+
 | # | Decision Area | They Chose | Over | Why |
 |---|---------------|------------|------|-----|
-| 1 | [Transport] | [X] | [Y] | [reasoning] |
-| 2 | [Threading] | [X] | [Y] | [reasoning] |
-| 3 | [Memory] | [X] | [Y] | [reasoning] |
-| 4 | [Persistence] | [X] | [Y] | [reasoning] |
-| 5 | [Flow Control] | [X] | [Y] | [reasoning] |
+| 1 | [Data model] | [X] | [Y] | [reasoning] |
+| 2 | [Transport / Network] | [X] | [Y] | [reasoning] |
+| 3 | [Threading / CPU] | [X] | [Y] | [reasoning] |
+| 4 | [Memory] | [X] | [Y] | [reasoning] |
+| 5 | [Persistence] | [X] | [Y] | [reasoning] |
+| 6 | [Flow Control] | [X] | [Y] | [reasoning] |
+| 7 | [Auth / Security] | [X] | [Y] | [reasoning] |
+| 8 | [Multitenancy] | [X] | [Y] | [reasoning] |
+| 9 | [Fault tolerance] | [X] | [Y] | [reasoning] |
+| 10 | [Deployment] | [X] | [Y] | [reasoning] |
+| 11 | [Recovery] | [X] | [Y] | [reasoning] |
+| 12 | [Observability] | [X] | [Y] | [reasoning] |
 
 ### Tradeoff Deep-Dive
 
