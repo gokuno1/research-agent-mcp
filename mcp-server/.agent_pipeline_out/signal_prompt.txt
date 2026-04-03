@@ -1,0 +1,443 @@
+You are an expert NIFTY-style index options analyst. You MUST respond with ONLY a single JSON object
+(no markdown fences, no extra text) matching exactly this shape:
+
+{
+  "direction_bias": "bullish" | "bearish" | "neutral",
+  "volatility_expectation": "low" | "moderate" | "high",
+  "key_levels": [number, ...],
+  "trade_strike": "e.g. 24500 CE" or "NO_TRADE",
+  "instrument_type": "CE" | "PE" or "" when NO_TRADE,
+  "strike_price": number or 0 when NO_TRADE,
+  "target_percent": number,
+  "stop_percent": number,
+  "reasoning": "short explanation",
+  "confidence": "low" | "medium" | "high"
+}
+
+Rules:
+- Only recommend buying CE or PE (long options). Use NO_TRADE when edge is weak or signals conflict.
+- Choose strike_price using underlying spot and strike_prices_available / ATM hint; prefer liquid near-ATM unless signals justify OTM.
+- target_percent and stop_percent are percent moves on the option premium (intraday-style), not on spot.
+- key_levels: include support/resistance or notable strikes from signals (numbers only).
+- When in doubt, NO_TRADE with neutral bias and confidence low.
+
+Underlying label: Nifty 50
+Expiry: 2026-04-07
+Spot (from chain): 22713.1
+
+Feature bundle (Tier-1 signals + context):
+{
+  "underlying_spot_price": 22713.1,
+  "underlying_key": "NSE_INDEX|Nifty 50",
+  "expiry": "2026-04-07",
+  "strike_prices_available": [
+    20100.0,
+    20150.0,
+    20200.0,
+    20250.0,
+    20300.0,
+    20350.0,
+    20400.0,
+    20450.0,
+    20500.0,
+    20550.0,
+    20600.0,
+    20650.0,
+    20700.0,
+    20750.0,
+    20800.0,
+    20850.0,
+    20900.0,
+    20950.0,
+    21000.0,
+    21050.0,
+    21100.0,
+    21150.0,
+    21200.0,
+    21250.0,
+    21300.0,
+    21350.0,
+    21400.0,
+    21450.0,
+    21500.0,
+    21550.0,
+    21600.0,
+    21650.0,
+    21700.0,
+    21750.0,
+    21800.0,
+    21850.0,
+    21900.0,
+    21950.0,
+    22000.0,
+    22050.0,
+    22100.0,
+    22150.0,
+    22200.0,
+    22250.0,
+    22300.0,
+    22350.0,
+    22400.0,
+    22450.0,
+    22500.0,
+    22550.0,
+    22600.0,
+    22650.0,
+    22700.0,
+    22750.0,
+    22800.0,
+    22850.0,
+    22900.0,
+    22950.0,
+    23000.0,
+    23050.0,
+    23100.0,
+    23150.0,
+    23200.0,
+    23250.0,
+    23300.0,
+    23350.0,
+    23400.0,
+    23450.0,
+    23500.0,
+    23550.0,
+    23600.0,
+    23650.0,
+    23700.0,
+    23750.0,
+    23800.0,
+    23850.0,
+    23900.0,
+    23950.0,
+    24000.0,
+    24050.0,
+    24100.0,
+    24150.0,
+    24200.0,
+    24250.0,
+    24300.0,
+    24350.0,
+    24400.0,
+    24450.0,
+    24500.0,
+    24550.0,
+    24600.0,
+    24650.0,
+    24700.0,
+    24750.0,
+    24800.0,
+    24850.0,
+    24900.0,
+    24950.0,
+    25000.0,
+    25050.0,
+    25100.0,
+    25150.0,
+    25200.0,
+    25250.0,
+    25300.0,
+    25350.0,
+    25400.0,
+    25450.0,
+    25500.0,
+    25550.0,
+    25600.0,
+    25650.0,
+    25700.0,
+    25750.0,
+    25800.0,
+    25850.0,
+    25900.0,
+    25950.0,
+    26000.0,
+    26050.0,
+    26100.0,
+    26150.0,
+    26200.0,
+    26250.0,
+    26300.0,
+    26350.0,
+    26400.0,
+    26450.0,
+    26500.0,
+    26550.0,
+    26600.0
+  ],
+  "atm_strike_hint": 22700.0,
+  "tier1_signals": [
+    {
+      "name": "OI_VELOCITY",
+      "state": "RESISTANCE_FORMATION",
+      "strength": 0.45868795990401223,
+      "meta": {
+        "call_delta_pct": 0.12134198295778541,
+        "put_delta_pct": 0.3373459769462268,
+        "price_move": "UP",
+        "atm_contraction": false,
+        "resistance_from": 24000.0,
+        "resistance_to": 24000.0,
+        "support_from": 22000.0,
+        "support_to": 22000.0
+      }
+    },
+    {
+      "name": "OPENING_VS_CLOSING",
+      "state": "CHURN_DOMINANT",
+      "strength": 0.9980458316112968,
+      "meta": {
+        "positional_share": 0.0009770841943515715,
+        "churn_share": 0.9990229158056484,
+        "magnet_from": 22000.0,
+        "magnet_to": 22000.0
+      }
+    },
+    {
+      "name": "DEALER_HEDGE_PRESSURE",
+      "state": "MOMENTUM_REINFORCEMENT_DOWN",
+      "strength": 1.0,
+      "meta": {
+        "net_public_call_delta": 19047915.693348106,
+        "net_public_put_delta": -25887869.726875726,
+        "net_dealer_delta_sensitivity": 6839954.03352762,
+        "moneyness_center": 23305.690258258906
+      }
+    },
+    {
+      "name": "OI_CENTER_OF_GRAVITY",
+      "state": "COG_ABOVE_SPOT",
+      "strength": 0.0012895044393277661,
+      "meta": {
+        "cog_strike": 22742.388643280894,
+        "distance_from_spot": 29.288643280895485,
+        "drift_points": 29.288643280895485
+      }
+    },
+    {
+      "name": "CONVEXITY_ASYMMETRY",
+      "state": "TAIL_RISK_PUT_DEMAND",
+      "strength": 0.7619290973444628,
+      "meta": {
+        "atm_call_share": 0.12383997275356305,
+        "atm_put_share": 0.11315006043300858,
+        "otm_call_share": 0.8118059099104717,
+        "otm_put_share": 0.7619290973444628,
+        "dominant_wing_from": 26600.0,
+        "dominant_wing_to": 26600.0
+      }
+    },
+    {
+      "name": "LIQUIDITY_VOID",
+      "state": "VOID_ABOVE_SPOT",
+      "strength": 0.5,
+      "meta": {
+        "void_above_from": 22750.0,
+        "void_above_to": 26600.0,
+        "void_below_from": 20100.0,
+        "void_below_to": 22650.0,
+        "cluster_from": 20200.0,
+        "cluster_to": 24000.0
+      }
+    },
+    {
+      "name": "STRIKE_ROLL",
+      "state": "DOWNWARD_CALL_ROLL",
+      "strength": 1.0,
+      "meta": {
+        "from_strike": 24100.0,
+        "to_strike": 23000.0,
+        "side": "CALL"
+      }
+    },
+    {
+      "name": "CALENDAR_CONFLICT",
+      "state": "INCONCLUSIVE",
+      "strength": 0.0,
+      "meta": {}
+    },
+    {
+      "name": "SKEW_RESPONSIVENESS",
+      "state": "CHASE_RISK",
+      "strength": 1.0,
+      "meta": {
+        "price_move": "UP",
+        "call_skew_slope": 193.13071698575428,
+        "put_skew_slope": 199.0599950220866
+      }
+    },
+    {
+      "name": "DEALER_NEUTRAL_CORRIDOR",
+      "state": "WIDE",
+      "strength": 0.11667275713134712,
+      "meta": {
+        "lower_bound": 20100.0,
+        "upper_bound": 22750.0
+      }
+    },
+    {
+      "name": "INTRINSIC_DOMINANCE",
+      "state": "PREMIUM_DOMINANT",
+      "strength": 0.0,
+      "meta": {
+        "intrinsic_oi_share": 0.0
+      }
+    },
+    {
+      "name": "STRIKE_DEFENSE_FAILURE",
+      "state": "NONE",
+      "strength": 0.0,
+      "meta": {}
+    },
+    {
+      "name": "SYNTHETIC_FORWARD_DISTORTION",
+      "state": "NEAR_PARITY",
+      "strength": 0.0,
+      "meta": {}
+    },
+    {
+      "name": "PARTICIPANT_TRAP",
+      "state": "RETAIL_SHORT_OTM_TRAP_UP",
+      "strength": 0.5,
+      "meta": {
+        "retail_short_from": 23400.0,
+        "retail_short_to": 26600.0,
+        "inst_wing_from": 20200.0,
+        "inst_wing_to": 22000.0
+      }
+    },
+    {
+      "name": "VOLATILITY_SUPPLY_EXHAUSTION",
+      "state": "SUPPLY_INTACT",
+      "strength": 0.0,
+      "meta": {
+        "exhaustion_score": 0.0
+      }
+    }
+  ],
+  "legacy_rule_engine": {
+    "oi_velocity": {
+      "call_delta_oi_pct": 0.12134198295778541,
+      "put_delta_oi_pct": 0.3373459769462268,
+      "price_move": "UP",
+      "state": "RESISTANCE_FORMATION",
+      "strength": 0.45868795990401223,
+      "atm_contraction_active": false,
+      "top_resistance_band": {
+        "from": 24000.0,
+        "to": 24000.0
+      },
+      "top_support_band": {
+        "from": 22000.0,
+        "to": 22000.0
+      }
+    },
+    "opening_vs_closing": {
+      "positional_volume_share": 0.0009770841943515715,
+      "churn_volume_share": 0.9990229158056484,
+      "strength": 0.9980458316112968,
+      "state": "CHURN_DOMINANT",
+      "top_magnet_band": {
+        "from": 22000.0,
+        "to": 22000.0
+      }
+    },
+    "dealer_hedge_pressure": {
+      "net_public_call_delta": 19047915.693348106,
+      "net_public_put_delta": -25887869.726875726,
+      "net_dealer_delta_sensitivity": 6839954.03352762,
+      "moneyness_weighted_center": 23305.690258258906,
+      "state": "MOMENTUM_REINFORCEMENT_DOWN",
+      "strength": 1.0
+    },
+    "oi_center_of_gravity": {
+      "cog_strike": 22742.388643280894,
+      "distance_from_spot": 29.288643280895485,
+      "drift_points": 29.288643280895485,
+      "state": "COG_ABOVE_SPOT",
+      "strength": 0.0012895044393277661
+    },
+    "convexity_asymmetry": {
+      "atm_call_oi_share": 0.12383997275356305,
+      "atm_put_oi_share": 0.11315006043300858,
+      "otm_call_oi_share": 0.8118059099104717,
+      "otm_put_oi_share": 0.7619290973444628,
+      "state": "TAIL_RISK_PUT_DEMAND",
+      "strength": 0.7619290973444628,
+      "dominant_wing_band": {
+        "from": 26600.0,
+        "to": 26600.0
+      }
+    },
+    "liquidity_void": {
+      "state": "VOID_ABOVE_SPOT",
+      "strength": 0.5,
+      "void_above_spot": {
+        "from": 22750.0,
+        "to": 26600.0
+      },
+      "void_below_spot": {
+        "from": 20100.0,
+        "to": 22650.0
+      },
+      "top_high_oi_cluster": {
+        "from": 20200.0,
+        "to": 24000.0
+      }
+    },
+    "strike_roll": {
+      "from_strike": 24100.0,
+      "to_strike": 23000.0,
+      "state": "DOWNWARD_CALL_ROLL",
+      "side": "CALL",
+      "strength": 1.0
+    },
+    "calendar_conflict": {
+      "state": "INCONCLUSIVE",
+      "strength": 0.0
+    },
+    "skew_responsiveness": {
+      "call_skew_slope": 193.13071698575428,
+      "put_skew_slope": 199.0599950220866,
+      "price_move": "UP",
+      "state": "CHASE_RISK",
+      "strength": 1.0
+    },
+    "dealer_neutral_corridor": {
+      "lower_bound": 20100.0,
+      "upper_bound": 22750.0,
+      "state": "WIDE",
+      "strength": 0.11667275713134712
+    },
+    "intrinsic_dominance": {
+      "intrinsic_oi_share": 0.0,
+      "state": "PREMIUM_DOMINANT",
+      "strength": 0.0
+    },
+    "strike_defense_failure": {
+      "state": "NONE",
+      "strength": 0.0,
+      "failed_strike": null,
+      "side": null
+    },
+    "synthetic_forward_distortion": {
+      "state": "NEAR_PARITY",
+      "strength": 0.0
+    },
+    "participant_trap": {
+      "state": "RETAIL_SHORT_OTM_TRAP_UP",
+      "strength": 0.5,
+      "retail_short_zone": {
+        "from": 23400.0,
+        "to": 26600.0
+      },
+      "institutional_wing_zone": {
+        "from": 20200.0,
+        "to": 22000.0
+      }
+    },
+    "volatility_supply_exhaustion": {
+      "exhaustion_score": 0.0,
+      "state": "SUPPLY_INTACT",
+      "strength": 0.0
+    }
+  }
+}
