@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: upstox-optionchain-mcp
+Version: 0.1.0
+Requires-Dist: mcp[cli]
+Requires-Dist: httpx

@@ -1,0 +1,8 @@
+[project]
+name = "upstox-optionchain-mcp"
+version = "0.1.0"
+dependencies = ["mcp[cli]", "httpx"]
+
+[tool.setuptools]
+packages = ["upstox_optionchain_mcp"]
+package-dir = {"upstox_optionchain_mcp" = "."}

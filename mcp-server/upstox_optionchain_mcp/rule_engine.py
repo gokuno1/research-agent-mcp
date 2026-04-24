@@ -47,12 +47,12 @@ def evaluate(chain: list[dict[str, Any]], spot_price: float) -> dict[str, Any]:
     out["convexity_asymmetry"] = _compute_convexity_asymmetry(chain, spot_price)
     out["liquidity_void"] = _compute_liquidity_void(chain, spot_price)
     out["strike_roll"] = _compute_strike_roll(chain)
-    out["calendar_conflict"] = {"state": "INCONCLUSIVE", "strength": 0.0}
+    out["calendar_conflict"] = _compute_calendar_conflict(chain, spot_price)
     out["skew_responsiveness"] = _compute_skew_responsiveness(chain, spot_price)
     out["dealer_neutral_corridor"] = _compute_dealer_neutral_corridor(chain, spot_price)
     out["intrinsic_dominance"] = _compute_intrinsic_dominance(chain, spot_price)
     out["strike_defense_failure"] = _compute_strike_defense_failure(chain, spot_price)
-    out["synthetic_forward_distortion"] = {"state": "NEAR_PARITY", "strength": 0.0}
+    out["synthetic_forward_distortion"] = _compute_synthetic_forward_distortion(chain, spot_price)
     out["participant_trap"] = _compute_participant_trap(chain, spot_price)
     out["volatility_supply_exhaustion"] = _compute_volatility_supply_exhaustion(chain, spot_price)
     return out
@@ -513,4 +513,88 @@ def _compute_volatility_supply_exhaustion(chain: list[dict[str, Any]], spot_pric
         "exhaustion_score": exhaustion_score,
         "state": "POTENTIAL_VOL_BREAKOUT" if exhaustion_score > 0.5 else "SUPPLY_INTACT",
         "strength": exhaustion_score,
+    }
+
+
+def _compute_calendar_conflict(chain: list[dict[str, Any]], spot_price: float) -> dict[str, Any]:
+    """Near-ATM vs far-OTM OI positioning asymmetry (single-expiry proxy)."""
+    near_call_oi = 0.0
+    near_put_oi = 0.0
+    far_call_oi = 0.0
+    far_put_oi = 0.0
+    near_band = spot_price * 0.02
+    far_threshold = spot_price * 0.03
+
+    for data in chain:
+        strike = data["strike_price"]
+        dist = abs(strike - spot_price)
+        c_oi = _cmd(data)["oi"]
+        p_oi = _pmd(data)["oi"]
+        if dist <= near_band:
+            near_call_oi += c_oi
+            near_put_oi += p_oi
+        elif dist >= far_threshold:
+            far_call_oi += c_oi
+            far_put_oi += p_oi
+
+    near_total = near_call_oi + near_put_oi
+    far_total = far_call_oi + far_put_oi
+    if near_total == 0 or far_total == 0:
+        return {"state": "INCONCLUSIVE", "strength": 0.0}
+
+    near_call_share = near_call_oi / near_total
+    far_call_share = far_call_oi / far_total
+
+    divergence = abs(near_call_share - far_call_share)
+    near_bullish = near_put_oi > near_call_oi
+    far_bullish = far_put_oi > far_call_oi
+
+    if (near_bullish and far_bullish) or (not near_bullish and not far_bullish):
+        state = "ALIGNED"
+    elif divergence > 0.15:
+        state = "CONFLICTING"
+    else:
+        state = "INCONCLUSIVE"
+
+    return {
+        "state": state,
+        "strength": min(1.0, divergence * 2),
+        "near_call_share": round(near_call_share, 4),
+        "far_call_share": round(far_call_share, 4),
+    }
+
+
+def _compute_synthetic_forward_distortion(chain: list[dict[str, Any]], spot_price: float) -> dict[str, Any]:
+    """Put-call parity check: synthetic forward vs spot at ATM strikes."""
+    atm_strike = _find_closest_strike(chain, spot_price)
+    atm_band = spot_price * 0.01
+
+    distortions: list[float] = []
+    for data in chain:
+        strike = data["strike_price"]
+        if abs(strike - atm_strike) <= atm_band:
+            call_ltp = _cmd(data)["ltp"]
+            put_ltp = _pmd(data)["ltp"]
+            if call_ltp > 0 or put_ltp > 0:
+                synthetic_fwd = call_ltp - put_ltp + strike
+                distortion = (synthetic_fwd - spot_price) / spot_price if spot_price > 0 else 0.0
+                distortions.append(distortion)
+
+    if not distortions:
+        return {"state": "NEAR_PARITY", "strength": 0.0, "avg_distortion": 0.0}
+
+    avg_distortion = sum(distortions) / len(distortions)
+
+    if avg_distortion > 0.002:
+        state = "FORWARD_PREMIUM"
+    elif avg_distortion < -0.002:
+        state = "FORWARD_DISCOUNT"
+    else:
+        state = "NEAR_PARITY"
+
+    return {
+        "state": state,
+        "strength": min(1.0, abs(avg_distortion) * 100),
+        "avg_distortion": round(avg_distortion, 6),
+        "samples": len(distortions),
     }
