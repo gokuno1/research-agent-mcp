@@ -1,0 +1,108 @@
+{
+  "timestamp": "2026-05-01T06:30:00+05:30",
+  "mode": "full",
+  "destination": "india",
+  "source_shock": "iran_war_hormuz_blockade_oil_supply",
+  "archetype": "geopolitical_war_supply_shock",
+  "feature_vector": {
+    "growth": 6.9,
+    "headline_inflation": 3.40,
+    "oil_zscore": 2.0,
+    "USD_zscore": 1.0,
+    "real_10y_yield": 1.6,
+    "HY_OAS_zscore": 0.5,
+    "equity_drawdown_3m": -4,
+    "FX_vol": 10,
+    "geopolitical_flag": 1,
+    "fiscal_stance": -0.4,
+    "monetary_stance": 0.5,
+    "banking_stress_flag": 0
+  },
+  "live_indicators": {
+    "brent_usd_per_bbl": 120,
+    "brent_physical_dated": 120,
+    "hormuz_status": "closed_since_2026-02-28",
+    "dxy": 102,
+    "usdinr": 95.25,
+    "nifty50_close": 23997.55,
+    "nifty50_close_date": "2026-04-30",
+    "india_10y_gsec": 6.93,
+    "india_vix_estimate": 18.5,
+    "us_fed_funds_range": "3.50-3.75",
+    "us_fed_last_decision": "hold_8-4_with_4_dissents_easing_bias",
+    "us_fed_decision_date": "2026-04-29",
+    "us_10y_yield_estimate": 4.45,
+    "us_cpi_headline": 3.0,
+    "us_cpi_core": 3.2,
+    "india_cpi_headline_march": 3.40,
+    "india_cpi_april_release_date": "2026-05-12",
+    "rbi_repo_rate": 5.25,
+    "rbi_stance": "neutral_on_hold",
+    "fii_flows_q1_2026": -35808,
+    "fii_flows_q1_2026_unit": "INR_crore_outflow",
+    "fii_flows_april_2_single_day": -22032,
+    "fii_flows_april_2_unit": "INR_crore_outflow",
+    "iran_war_status": "escalated_no_end_in_sight_per_29-Apr_Trump_statement"
+  },
+  "top_analogues": [
+    {
+      "name": "2022_europe_gas_crisis_global_rate_hikes",
+      "similarity_score": 0.51,
+      "most_similar_dimensions": ["geopolitical_flag", "oil_zscore", "real_10y_yield"],
+      "differential_diagnosis": [
+        "headline_inflation: 3.4% today vs 9.8% peak in 2022 (LARGEST gap)",
+        "growth: 6.9% India domestic vs 1.0% global in 2022",
+        "monetary_stance: +0.5 (Fed-only) vs +1.2 (synchronised global tightening)"
+      ],
+      "implication": "policy response should be milder; equity drawdown shallower; oil-channel intact but financial-tightening channel half as severe"
+    },
+    {
+      "name": "1991_india_bop_crisis",
+      "similarity_score": 0.74,
+      "most_similar_dimensions": ["geopolitical_flag", "oil_shock_pattern", "oil_import_dependency"],
+      "differential_diagnosis": [
+        "FX reserves: ~10 months cover today vs <2 weeks in 1991",
+        "currency regime: flexible today vs fixed",
+        "banking system: multi-year-high asset quality today vs low transparency 1991"
+      ],
+      "implication": "shock pattern rhymes; financial-system outcome will not — India has buffers 1991 lacked"
+    }
+  ],
+  "frameworks_tagged": [
+    "CAD identity",
+    "Fed-EM transmission",
+    "USD pass-through",
+    "real-vs-nominal",
+    "sectoral balances",
+    "DuPont",
+    "heuristic — RBI reaction function",
+    "heuristic — fiscal pass-through",
+    "heuristic — sovereign resilience",
+    "heuristic — producer leverage",
+    "heuristic — refining margin expansion",
+    "heuristic — pricing-power monopoly",
+    "heuristic — capacity discipline",
+    "heuristic — regulated returns",
+    "heuristic — stretched-consumer channel",
+    "heuristic — ALM"
+  ],
+  "report_path": "docs/macro-analysis/2026-05-01-india-iran-shock-sector-update.md",
+  "sector_verdict_changes_vs_last_report": [
+    {"sector": "Banks (HDFCBANK, ICICIBANK)", "from": "Neutral", "to": "Bullish", "reason": "Q4 FY26 results: PAT +9%, multi-year-low GNPA, ICICI loan growth 15.8% sector-leading"},
+    {"sector": "WIPRO (IT)", "from": "Bearish", "to": "Neutral", "reason": "Q4 margin 17.3% best-in-class, large deals +45% YoY — short thesis was wrong"},
+    {"sector": "FMCG-HPC (HINDUNILVR, NESTLEIND, TATACONSUM)", "from": "Neutral", "to": "Bearish", "reason": "INR collapse to 95 amplifies palm-oil + crude-derivative input cost squeeze"},
+    {"sector": "ASIANPAINT", "from": "Bearish", "to": "Strong Bearish", "reason": "Triple compression: TiO2/solvents up + INR weakness + Birla/JSW competition"}
+  ],
+  "next_event_triggers": [
+    {"date": "2026-05-12", "event": "India April CPI release", "trigger_threshold": "headline > 4.5% forces Full re-run; > 5.0% archetype shift to closer-to-2022"},
+    {"date": "2026-05-30", "event": "India Q4 GDP / fiscal closure data", "trigger": "always Full"},
+    {"date": "2026-06-06", "event": "RBI MPC", "trigger": "always Full; hike scenario flips banks NIM thesis"},
+    {"date": "2026-06-10", "event": "Fed FOMC + new dot plot", "trigger": "always Full"},
+    {"date": "pending", "event": "IMD monsoon forecast (late Apr / early May)", "trigger": "below-normal forecast Full re-run for M&M, ITC, FMCG rural"},
+    {"date": "ongoing", "event": "Hormuz reopening / ceasefire announcement", "trigger": "always Full — single biggest regime-flip event"}
+  ],
+  "stale_data_flags": [
+    "FII flows: most recent comprehensive data is early April; refresh in next delta to validate Fed-EM amplification estimate"
+  ],
+  "schema_version": "v0.2"
+}
