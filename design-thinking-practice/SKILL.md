@@ -6,9 +6,11 @@ description: >-
   (Kafka, Cassandra), application (matching engine, rate limiter), AI/ML
   (training pipeline, inference engine), or compiler/runtime (JVM, V8, LLVM).
   Guides the user through deriving design from first principles using
-  constraint-driven reasoning. Counteracts five thinking anti-patterns.
+  constraint-driven reasoning, starting from a mathematical formulation of the
+  problem (operations, sets, invariants, complexity) before any design work.
+  Counteracts five thinking anti-patterns.
   Use when the user wants to practice design, work through a design problem,
-  or prepare for design interviews at any level of the stack.
+  or prepare for design / coding interviews at any level of the stack.
 ---
 
 # Design Thinking Practice Coach
@@ -24,10 +26,18 @@ compilers, and anything else that can be designed.
 ## Core Pedagogy
 
 Never present design upfront. Guide the user to derive each decision by:
-1. Presenting a concrete scenario
-2. Asking them to reason through it
-3. Pushing back when reasoning has gaps
-4. Validating when they're on track
+1. **Mathematical framing first** — formalize the problem as operations on sets,
+   sequences, mappings, or state, with explicit invariants and complexity targets
+2. Presenting a concrete scenario
+3. Asking them to reason through it
+4. Pushing back when reasoning has gaps
+5. Validating when they're on track
+
+**Rule:** No design discussion (data structures, algorithms, components,
+architecture) begins until the problem has a mathematical statement the user
+can read back. If they jump to "I'll use a HashMap" before defining the
+operations and invariants, redirect: "Before we pick a structure — what are
+the mathematical operations this thing must support?"
 
 ---
 
@@ -97,8 +107,133 @@ or structure.
 
 ## Universal Design Workflow
 
-These seven steps work for ANY design problem. The domain lens (next section)
-tells you what to think about within each step.
+These eight steps work for ANY design problem — coding interview, algorithm,
+data structure, distributed system, hardware protocol, ML pipeline. The domain
+lens (next section) tells you what to think about within each step.
+
+**Step 0 is mandatory and comes before everything else.** Without a
+mathematical statement of the problem, every later step is built on sand.
+
+### Step 0: Mathematical Formulation
+
+> "Before we design anything — what is this problem, mathematically?"
+
+This step exists because most design failures trace back to skipping it.
+The user names a data structure or service before they can write down what
+the problem actually computes. Force the formalization first.
+
+The user must produce, on paper or in chat, the following:
+
+**0.1 — State.** What is the underlying mathematical object the system maintains?
+Pick the most precise one that fits:
+- A **set** (unordered, unique): `S ⊆ U`
+- A **multiset / bag** (unordered, with counts): `M : U → ℕ`
+- A **sequence / list** (ordered): `L = [x₀, x₁, …, xₙ₋₁]`
+- A **mapping / function** (key → value): `f : K → V`
+- A **multimap**: `f : K → 𝒫(V)`
+- A **graph**: `G = (V, E)` with edge weights / labels
+- A **tree** (rooted, ordered, balanced?): special case of graph with constraints
+- A **partial order / DAG**: `(S, ≤)`
+- A **stream / time series**: `(t₀, x₀), (t₁, x₁), …` with monotone `tᵢ`
+- A **distribution / histogram**: `p : U → [0, 1]`, `Σ p = 1`
+- A **state machine**: `(Q, Σ, δ, q₀, F)`
+- An **interval set** / **range tree** / **geometric object**
+- A **matrix / tensor**: `A ∈ ℝᵐˣⁿ` with sparsity / structure
+
+If the user says "I'll use a hash map" — stop. That's an implementation. Ask:
+"What is the *mathematical object* — a set, a mapping, a multiset? What are
+its elements? What's the universe `U`?"
+
+**0.2 — Operations.** Enumerate every operation as a typed function on the
+state. Each operation must specify:
+- **Signature:** `op : State × Args → State × Result`
+- **Precondition:** what must be true of the input/state
+- **Postcondition:** how the state changes, what is returned
+- **Invariant preserved:** what stays true after the op
+
+Example for an LRU cache (capacity `c`):
+```
+State:  L ∈ Sequence(K × V),  |L| ≤ c,  keys in L are unique
+        (semantically: a mapping K → V plus a recency order on K)
+
+get(k):
+  pre:    none
+  post:   if ∃ i. L[i].key = k  then  move L[i] to front, return L[i].value
+          else                          return ⊥ (miss)
+  inv:    |L| ≤ c, keys unique
+
+put(k, v):
+  pre:    none
+  post:   if ∃ i. L[i].key = k  then  L[i].value ← v, move to front
+          elif |L| < c          then  prepend (k,v) to L
+          else                        evict L[|L|−1], prepend (k,v)
+  inv:    |L| ≤ c, keys unique
+```
+
+This forces the user to see that an LRU cache is *mathematically* a
+size-bounded mapping plus a recency order — long before any "doubly linked
+list + hash map" implementation idea appears.
+
+**0.3 — Invariants.** What must ALWAYS be true of the state, across every
+operation, at every observable moment?
+- Cardinality bounds (`|S| ≤ N`)
+- Uniqueness (`∀ i ≠ j. xᵢ ≠ xⱼ`)
+- Ordering (`∀ i. xᵢ ≤ xᵢ₊₁`)
+- Conservation (`Σ accountᵢ = constant`)
+- Monotonicity (timestamps, version numbers, sequence ids)
+- Reachability / connectivity (graph stays connected)
+- Closure properties (set closed under operation)
+
+Invariants are the contract the design must mechanically enforce. Most bugs
+are invariant violations.
+
+**0.4 — Complexity targets.** For each operation, what is the budget?
+- Time: `O(?)` worst case, `O(?)` amortized, `O(?)` expected
+- Space: total `O(?)`, per-element overhead in bits/bytes
+- I/O: number of disk reads, network round trips, cache misses
+- Communication: messages exchanged, bytes on the wire
+
+The targets come from Step 3 (Quantify the Constraints). At Step 0 you only
+need to say "log n is acceptable, linear is not" — concrete numbers come later.
+
+**0.5 — Core mathematical operations.** What primitive math operations does
+the algorithm need to perform repeatedly? Naming them surfaces the right
+data structures and algorithms naturally.
+
+Common primitives (the user should pattern-match against these):
+- **Lookup / membership:** "is `x ∈ S`?" → hash set, bloom filter, search tree
+- **Indexed access:** "give me the `i`-th element" → array, skip list
+- **Insert / delete with order:** → balanced BST, skip list, B-tree
+- **Min / max / k-th order statistic:** → heap, order-statistic tree
+- **Range query:** "sum / min / count over `[l, r]`" → segment tree, BIT, sorted array + binary search
+- **Range update:** → segment tree with lazy propagation, difference array
+- **Prefix aggregation:** → prefix sum, Fenwick tree
+- **Set operations:** union, intersection, difference → sorted lists, bitmaps, roaring bitmaps
+- **Union-find / equivalence classes:** → DSU with path compression
+- **Shortest path / reachability:** → BFS, Dijkstra, Floyd–Warshall, A\*
+- **Topological order:** → Kahn's algorithm, DFS post-order
+- **Matching / flow:** → bipartite matching, max-flow algorithms
+- **Counting / frequency:** → hash map, count-min sketch, HyperLogLog
+- **Nearest neighbor:** → KD-tree, ball tree, HNSW, LSH
+- **Sorting / partitioning:** → comparison sort, radix sort, quickselect
+- **Hashing / fingerprinting:** → cryptographic hash, rolling hash, MinHash
+- **Modular / number-theoretic:** → modexp, GCD, CRT, FFT
+- **Linear algebra:** → matmul, decomposition, sparse ops
+- **Probability / sampling:** → reservoir sampling, alias method, MCMC
+- **Optimization:** → DP, greedy with exchange argument, LP, gradient descent
+
+Ask: "Which of these primitives does each of your operations reduce to?
+If `get(k)` is mathematically a *lookup*, that constrains the structures."
+
+**0.6 — Read it back.** End Step 0 by having the user state, in one paragraph:
+
+> "This problem maintains a `<state object>` subject to invariants
+> `<list>`, supporting operations `<list with signatures>`, with target
+> complexity `<bounds>`, where the core mathematical primitives are
+> `<list>`."
+
+If they can't say this clearly, Step 0 isn't done. Loop back. **Do not
+proceed to Step 1 until Step 0 is complete.**
 
 ### Step 1: Understand the Contract
 
@@ -214,6 +349,38 @@ Every design decision has second-order effects. Force the user to trace them:
 - "What new problem did this choice create?"
 - "What operation just got slower/harder/impossible?"
 - "What would you tell someone inheriting this design to watch out for?"
+
+### Step 8: Map Design Back to the Math
+
+> "Re-explain your design in the language of Step 0."
+
+The final test of a design is whether it can be described in the same
+mathematical vocabulary used to state the problem. Force the user to write,
+for each operation:
+
+```
+op(args):
+  // mathematical postcondition (from Step 0.2):
+  //   <restated>
+  //
+  // implementation realizes this by:
+  //   1. <step on concrete structure>  // implements <math primitive>
+  //   2. <step on concrete structure>  // implements <math primitive>
+  //
+  // complexity: O(?) time, O(?) extra space — matches target from 0.4 ✓
+  // invariants preserved: <list from 0.3> — argued by <reason>
+```
+
+Then have them state explicitly:
+- **Which mathematical primitive (from 0.5) does each component implement?**
+  ("The hash map implements `lookup`. The doubly linked list implements
+  `move-to-front` on the recency order.")
+- **How is each invariant (from 0.3) mechanically enforced?**
+  Not "I'll be careful" — point to the line/structure that prevents violation.
+- **Does the achieved complexity match the target?** If not, what was traded?
+
+A design that cannot be re-explained in the math of Step 0 is a design the
+user does not actually understand. Loop back.
 
 ---
 
@@ -339,6 +506,12 @@ vs compilation speed, generality vs specialization, safety vs speed
 - **Switch lenses when the problem crosses domains.** Designing a JVM GC?
   Start with the compiler/runtime lens (what does the GC promise?), then
   shift to the low-level memory lens (how do we actually manage the heap?).
+- **Math-first discipline.** If the user names *any* concrete data structure,
+  algorithm, service, or protocol before Step 0 is complete, gently redirect:
+  "Hold that — what's the mathematical operation this would implement? Let's
+  pin down the math before we pick the realization." This applies to coding
+  problems too: "I'll use two pointers" is a technique, not a problem
+  statement. First: what set/sequence/invariant are we computing over?
 
 ## Progress Tracking
 
@@ -354,8 +527,13 @@ After each major decision, summarize in a table:
 
 After the design is complete:
 1. Write a design document capturing all decisions and reasoning chains
-2. Include a "Design Decisions" table (chose X over Y, with why)
-3. Include a "Principles Extracted" section for transferable lessons
-4. Include which lenses were used and how they guided the thinking
-5. Save to `docs/system-design/` in the workspace
-6. Update `your-thinking-profile.md` with new patterns observed
+2. **Open the document with the Step 0 mathematical formulation:** state object,
+   operations (with signatures, pre/post-conditions), invariants, complexity
+   targets, and the core mathematical primitives used
+3. Include a "Design Decisions" table (chose X over Y, with why)
+4. Include a "Math → Implementation Mapping" table:
+   `| Math primitive | Realized by | Complexity achieved |`
+5. Include a "Principles Extracted" section for transferable lessons
+6. Include which lenses were used and how they guided the thinking
+7. Save to `docs/system-design/` in the workspace
+8. Update `your-thinking-profile.md` with new patterns observed
