@@ -1,0 +1,39 @@
+{
+  "_comment": "MAINTAIN MANUALLY EVERY SATURDAY before running. List NIFTY-50 names that announced Q-results in the last 5 trading days. Source: nseindia.com/companies-listing/corporate-filings-financial-results. Surprise = (actual_eps - consensus_eps) / |consensus_eps|. day_of_week is the announcement day (Friday triggers DellaVigna-Pollet bonus). same_day_count is the count of NIFTY-50 firms reporting on the same day (>10 triggers Hirshleifer-Lim-Teoh distraction bonus).",
+  "_last_updated": "2026-05-02",
+
+  "announcements": [
+    {
+      "symbol": "TCS",
+      "announce_date": "2026-04-28",
+      "day_of_week": "Tuesday",
+      "actual_eps": 134.2,
+      "consensus_eps": 130.5,
+      "surprise_sigma": 1.4,
+      "same_day_count": 3
+    },
+    {
+      "symbol": "INFY",
+      "announce_date": "2026-04-30",
+      "day_of_week": "Thursday",
+      "actual_eps": 16.85,
+      "consensus_eps": 17.10,
+      "surprise_sigma": -0.6,
+      "same_day_count": 5
+    },
+    {
+      "symbol": "RELIANCE",
+      "announce_date": "2026-05-01",
+      "day_of_week": "Friday",
+      "actual_eps": 27.40,
+      "consensus_eps": 26.10,
+      "surprise_sigma": 1.8,
+      "same_day_count": 7
+    }
+  ],
+
+  "next_earnings_within_3d": [
+    {"symbol": "HDFCBANK", "expected_date": "2026-05-04"},
+    {"symbol": "ICICIBANK", "expected_date": "2026-05-05"}
+  ]
+}

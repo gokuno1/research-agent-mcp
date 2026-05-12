@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "upstox-optionchain": {
+      "command": "/Users/aniketbi/Desktop/Aniket/project_files_backups/upstox_optionchain_mcp/.venv/bin/python",
+      "args": [
+        "/Users/aniketbi/Desktop/Aniket/project_files_backups/upstox_optionchain_mcp/__main__.py"
+      ],
+      "env": {
+        "UPSTOX_ACCESS_TOKEN": "eyJ0eXAiOiJKV1QiLCJrZXlfaWQiOiJza192MS4wIiwiYWxnIjoiSFMyNTYifQ.eyJzdWIiOiJCTjg2MDAiLCJqdGkiOiI2OWYyZGU2ZmNlMGM1ZDA0NjcxMmEwOGEiLCJpc011bHRpQ2xpZW50IjpmYWxzZSwiaXNQbHVzUGxhbiI6ZmFsc2UsImlhdCI6MTc3NzUyNDMzNSwiaXNzIjoidWRhcGktZ2F0ZXdheS1zZXJ2aWNlIiwiZXhwIjoxNzc3NTg2NDAwfQ.0X3V-pNuFXUgFgNUicfDHrg2gLSBWxaXMQFDb6-Khjc",
+        "UPSTOX_INSTRUMENT_KEY": "NSE_INDEX|Nifty 50",
+        "UPSTOX_API_BASE": "https://api.upstox.com/v2",
+        "UPSTOX_INDEX_LABEL": "Nifty 50"
+      }
+    },
+    "OpenAlex_Research_1_0_0": {
+      "command": "npx",
+      "args": [
+        "tsx",
+        "mcp-openalex/src/index.ts"
+      ],
+      "env": {
+        "OPENALEX_API_KEY": "ZT1fc0K1FAJFgnGWbZ03bp",
+        "OPENALEX_MAILTO": "miniproject2019@gmail.com"
+      }
+    }
+  }
+}

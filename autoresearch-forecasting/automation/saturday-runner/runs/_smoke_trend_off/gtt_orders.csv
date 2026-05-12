@@ -1,0 +1,4 @@
+symbol,isin,side,quantity,trigger_price,limit_price,order_type,validity,tag
+BAJAJ-AUTO,INE917I01010,SELL,6,775.65,773.32,SL-L,GTT,saturday-runner-stop
+WIPRO,INE075A01022,SELL,2,1758.2,1752.92,SL-L,GTT,saturday-runner-stop
+TCS,INE467B01029,SELL,4,1118.71,1115.35,SL-L,GTT,saturday-runner-stop

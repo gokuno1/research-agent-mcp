@@ -1,0 +1,64 @@
+# Saturday Runner — configuration
+# Every value here maps to §8 of:
+#   docs/research-runs/2026-05-02-systematic-swing-trading-evidence-based-playbook.md
+# Do NOT change values without a quarterly review (see §8.5 anti-overfit rules).
+
+capital:
+  amount_inr: 100000.0          # ₹1,00,000
+
+portfolio:
+  target_positions: 5           # tuned down from 6 because capital is small
+  max_positions: 6              # hard cap
+  max_per_sector: 2             # tuned down from 3 because 5 holdings = 60% concentration cap = 2
+  max_position_pct: 20.0        # max single name = ₹20k of capital
+  min_position_pct: 8.0         # min single name = ₹8k of capital
+  cash_buffer_pct_floor: 25.0   # at ₹1L always keep ≥ ₹25k cash
+  target_portfolio_vol_pct: 12.0  # annualised — Moreira-Muir 2017 (claim C5)
+
+risk:
+  per_position_risk_pct: 0.7    # 0.7% of capital risked per trade
+  hard_stop_pct: 7.0            # claim C5 / playbook §8.3 step 7
+  atr_stop_multiplier: 1.5      # vol-adjusted alternative
+  time_stop_weeks: 4            # PEAD/momentum signal needs refresh by then
+  profit_breakeven_trigger_pct: 6.0
+  profit_trail_trigger_pct: 12.0
+  profit_trail_distance_pct: 5.0
+
+market_filter:
+  weeks_sma: 40                 # NIFTY > 40-WMA → trend-on (claim C9, Faber)
+  vix_high_threshold: 22.0      # → halve target vol
+  vix_extreme_threshold: 30.0   # → quarter target vol
+
+quality:
+  min_roe_pct: 15.0             # claim C4 (Asness-Frazzini-Pedersen)
+  max_net_debt_to_ebitda: 2.0
+  # eps_cv_5y test: passes if stock's 5y CV-of-EPS < median of universe
+  required_score: 2             # need 2/3 to pass
+
+momentum:
+  lookback_months: 12           # 12-1 momentum (Carhart 1997, claim C1)
+  skip_months: 1                # skip last month (short-term reversal)
+  top_n_after_quality: 8        # candidate pool size
+
+pead:
+  surprise_threshold_sigma: 1.0
+  friday_bonus: 2               # priority bump for Friday earnings
+  high_distraction_bonus: 1     # priority bump if >10 firms reported same day
+  hold_max_weeks: 6
+
+costs:
+  # All-in cost model for Zerodha-style equity delivery on NSE
+  # STT 0.1% sell-side + Exchange 0.00345% + SEBI 0.0001% + Stamp 0.015% buy-side
+  # + GST 18% on (brokerage + transaction) + slippage 0.05-0.10% per side
+  roundtrip_pct: 0.30           # conservative all-in round-trip estimate
+
+data:
+  yfinance_lookback_days: 400   # ≈ 13 months for 12-1m momentum
+  vol_window_weeks: 4
+  atr_window_days: 14
+
+output:
+  email_enabled: false          # set true and configure env vars: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_TO
+  email_subject_prefix: "[Saturday Runner]"
+  print_to_console: true
+  generate_gtt_csv: true

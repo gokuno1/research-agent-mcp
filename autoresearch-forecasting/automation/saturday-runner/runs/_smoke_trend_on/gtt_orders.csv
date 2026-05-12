@@ -1,0 +1,7 @@
+symbol,isin,side,quantity,trigger_price,limit_price,order_type,validity,tag
+SUNPHARMA,INE044A01036,SELL,7,1005.78,1002.77,SL-L,GTT,saturday-runner-stop
+TCS,INE467B01029,SELL,5,1500.33,1495.83,SL-L,GTT,saturday-runner-stop
+KOTAKBANK,INE237A01028,SELL,11,677.9,675.86,SL-L,GTT,saturday-runner-stop
+BEL,INE263A01024,SELL,34,220.05,219.39,SL-L,GTT,saturday-runner-stop
+COALINDIA,INE522F01014,SELL,8,1034.18,1031.07,SL-L,GTT,saturday-runner-stop
+SHRIRAMFIN,INE721A01013,SELL,13,655.8,653.83,SL-L,GTT,saturday-runner-stop
